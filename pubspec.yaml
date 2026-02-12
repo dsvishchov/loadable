@@ -5,9 +5,9 @@ repository: https://github.com/dsvishchov/loadable
 issue_tracker: https://github.com/dsvishchov/loadable/issues
 
 environment:
-  sdk: ">=3.10.0 <4.0.0"
+  sdk: ^3.10.0
 
 dependencies:
-  activity_bloc: any
+  activity_bloc: ^0.0.19
   flutter:
     sdk: flutter
