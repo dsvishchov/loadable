@@ -1,0 +1,13 @@
+name: loadable
+description: Provides a convenient way to handle multiple widget statuses
+version: 0.0.1
+repository: https://github.com/dsvishchov/loadable
+issue_tracker: https://github.com/dsvishchov/loadable/issues
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  activity_bloc: any
+  flutter:
+    sdk: flutter
