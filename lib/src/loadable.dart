@@ -31,8 +31,20 @@ class Loadable extends StatelessWidget {
 /// Widget builder type based on current status
 typedef LoadableWidgetBuilder = WidgetBuilder? Function(LoadableStatus);
 
+typedef ListBuilder<T> = List<T> Function(BuildContext);
+
+/// Widgets list builder type based on current status
+typedef LoadableWidgetListBuilder = ListBuilder<Widget>? Function(LoadableStatus);
+
 extension LoadableWidgetBuilderBuild on LoadableWidgetBuilder {
   Widget? build(
+    BuildContext context,
+    LoadableStatus status,
+  ) => this(status)?.call(context);
+}
+
+extension LoadableWidgetListBuilderBuild on LoadableWidgetListBuilder {
+  List<Widget>? build(
     BuildContext context,
     LoadableStatus status,
   ) => this(status)?.call(context);

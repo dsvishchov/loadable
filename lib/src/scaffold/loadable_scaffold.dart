@@ -31,6 +31,9 @@ class LoadableScaffold extends StatelessWidget {
     this.appBarBuilder,
     this.bottomNavigationBarBuilder,
     this.floatingButtonBuilder,
+    this.persistentFooterAlignment = AlignmentDirectional.centerEnd,
+    this.persistentFooterDecoration,
+    this.persistentFooterButtonsBuilder,
     this.onRefresh,
     this.padding = .zero,
     this.backgroundColor,
@@ -49,6 +52,9 @@ class LoadableScaffold extends StatelessWidget {
   final LoadableWidgetBuilder? appBarBuilder;
   final LoadableWidgetBuilder? bottomNavigationBarBuilder;
   final LoadableWidgetBuilder? floatingButtonBuilder;
+  final AlignmentDirectional persistentFooterAlignment;
+  final BoxDecoration? persistentFooterDecoration;
+  final LoadableWidgetListBuilder? persistentFooterButtonsBuilder;
 
   final EdgeInsets padding;
   final Color? backgroundColor;
@@ -70,6 +76,9 @@ class LoadableScaffold extends StatelessWidget {
         final floatingButton = floatingButtonBuilder
           ?.build(context, status);
 
+        final persistentFooterButtons = persistentFooterButtonsBuilder
+          ?.build(context, status);
+
         final page = builder
           ?.build(context, status);
 
@@ -79,6 +88,9 @@ class LoadableScaffold extends StatelessWidget {
           bottomNavigationBar: bottomNavigationBar,
           floatingActionButton: floatingButton,
           backgroundColor: backgroundColor,
+          persistentFooterAlignment: persistentFooterAlignment,
+          persistentFooterDecoration: persistentFooterDecoration,
+          persistentFooterButtons: persistentFooterButtons,
         );
       },
     );
