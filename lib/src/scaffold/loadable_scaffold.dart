@@ -31,7 +31,7 @@ class LoadableScaffold extends StatelessWidget {
     this.appBarBuilder,
     this.bottomNavigationBarBuilder,
     this.floatingButtonBuilder,
-    this.persistentFooterAlignment = AlignmentDirectional.centerEnd,
+    this.persistentFooterAlignment = .centerEnd,
     this.persistentFooterDecoration,
     this.persistentFooterButtonsBuilder,
     this.onRefresh,
