@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/cupertino.dart' show
   CupertinoActivityIndicator, CupertinoSliverRefreshControl;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../loadable.dart';
@@ -120,7 +120,7 @@ class LoadableScaffold extends StatelessWidget {
     }
 
     final refreshable = !status.isLoading && (onRefresh != null);
-    final useCupertinoIndicator = Platform.isIOS || !useAdaptiveIndicator;
+    final useCupertinoIndicator = (!kIsWeb && (defaultTargetPlatform == .iOS)) || !useAdaptiveIndicator;
 
     final view = _RefreshableCustomScrollView(
       refreshable: refreshable,
