@@ -82,24 +82,22 @@ class LoadableScaffold extends StatelessWidget {
         final page = builder
           ?.build(context, status);
 
-        return SafeArea(
-          top: false,
-          child: Scaffold(
-            body: _page(status, page, appBar),
-            appBar: !useAppBarAsSliver ? appBar : null,
-            bottomNavigationBar: bottomNavigationBar,
-            floatingActionButton: floatingButton,
-            backgroundColor: backgroundColor,
-            persistentFooterAlignment: persistentFooterAlignment,
-            persistentFooterDecoration: persistentFooterDecoration,
-            persistentFooterButtons: persistentFooterButtons,
-          ),
+        return Scaffold(
+          body: _page(context, status, page, appBar),
+          appBar: !useAppBarAsSliver ? appBar : null,
+          bottomNavigationBar: bottomNavigationBar,
+          floatingActionButton: floatingButton,
+          backgroundColor: backgroundColor,
+          persistentFooterAlignment: persistentFooterAlignment,
+          persistentFooterDecoration: persistentFooterDecoration,
+          persistentFooterButtons: persistentFooterButtons,
         );
       },
     );
   }
 
   Widget? _page(
+    BuildContext context,
     LoadableStatus status,
     Widget? child,
     PreferredSizeWidget? appBar,
@@ -111,13 +109,17 @@ class LoadableScaffold extends StatelessWidget {
     };
 
     if (status.isLoaded) {
+      final safeBottom = EdgeInsets.only(
+        bottom: MediaQuery.viewPaddingOf(context).bottom
+      );
+
       child = useSlivers
         ? SliverPadding(
-            padding: padding,
+            padding: padding + safeBottom,
             sliver: child,
           )
         : Padding(
-            padding: padding,
+            padding: padding + safeBottom,
             child: child,
           );
     }

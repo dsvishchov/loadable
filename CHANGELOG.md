@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Rework bottom safe area in LoadableScaffold to use padding instead of SafeArea
+
 ## 0.0.4
 
 - Add bottom safe area to LoadableScaffold
