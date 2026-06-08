@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Add bottom safe area to LoadableScaffold
+
 ## 0.0.3
 
 - Add support for web

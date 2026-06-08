@@ -82,15 +82,18 @@ class LoadableScaffold extends StatelessWidget {
         final page = builder
           ?.build(context, status);
 
-        return Scaffold(
-          body: _page(status, page, appBar),
-          appBar: !useAppBarAsSliver ? appBar : null,
-          bottomNavigationBar: bottomNavigationBar,
-          floatingActionButton: floatingButton,
-          backgroundColor: backgroundColor,
-          persistentFooterAlignment: persistentFooterAlignment,
-          persistentFooterDecoration: persistentFooterDecoration,
-          persistentFooterButtons: persistentFooterButtons,
+        return SafeArea(
+          top: false,
+          child: Scaffold(
+            body: _page(status, page, appBar),
+            appBar: !useAppBarAsSliver ? appBar : null,
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: floatingButton,
+            backgroundColor: backgroundColor,
+            persistentFooterAlignment: persistentFooterAlignment,
+            persistentFooterDecoration: persistentFooterDecoration,
+            persistentFooterButtons: persistentFooterButtons,
+          ),
         );
       },
     );
