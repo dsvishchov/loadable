@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Minor fix to the & operator logic
+
 ## 0.0.6
 
 - Add operator & to combine multiple LoadableStatus'es

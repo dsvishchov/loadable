@@ -76,7 +76,7 @@ enum LoadableStatus {
       return this;
     } else if (isError || other.isError) {
       return .error;
-    } else if (isLoaded || other.isLoading) {
+    } else if (isLoading || other.isLoading) {
       return .loading;
     } else if (isLoaded && other.isLoaded) {
       return .loaded;
