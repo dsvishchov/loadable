@@ -119,7 +119,7 @@ class LoadableScaffold extends StatelessWidget {
             sliver: child,
           )
         : Padding(
-            padding: padding + safeBottom,
+            padding: padding,
             child: child,
           );
     }

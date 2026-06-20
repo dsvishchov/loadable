@@ -68,6 +68,21 @@ enum LoadableStatus {
   bool get isLoading => this == .loading;
   bool get isLoaded => this == .loaded;
   bool get isError => this == .error;
+
+  LoadableStatus operator &(LoadableStatus other) {
+    if (isNone) {
+      return other;
+    } else if (other.isNone) {
+      return this;
+    } else if (isError || other.isError) {
+      return .error;
+    } else if (isLoaded || other.isLoading) {
+      return .loading;
+    } else if (isLoaded && other.isLoaded) {
+      return .loaded;
+    }
+    return this;
+  }
 }
 
 /// Extension to simplify selecting required widget builder based on

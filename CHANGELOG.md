@@ -1,3 +1,8 @@
+## 0.0.6
+
+- Add operator & to combine multiple LoadableStatus'es
+- Remove bottom safe area padding when used without slivers
+
 ## 0.0.5
 
 - Rework bottom safe area in LoadableScaffold to use padding instead of SafeArea
