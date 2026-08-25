@@ -1,6 +1,6 @@
 name: loadable
 description: Convenient way to handle multiple widget statuses
-version: 0.0.7
+version: 0.0.8
 repository: https://github.com/dsvishchov/loadable
 issue_tracker: https://github.com/dsvishchov/loadable/issues
 

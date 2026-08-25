@@ -37,6 +37,7 @@ class LoadableScaffold extends StatelessWidget {
     this.onRefresh,
     this.padding = .zero,
     this.backgroundColor,
+    this.extendBodyBehindAppBar = false,
     this.useSlivers = false,
     this.useAppBarAsSliver = false,
   });
@@ -58,6 +59,7 @@ class LoadableScaffold extends StatelessWidget {
 
   final EdgeInsets padding;
   final Color? backgroundColor;
+  final bool extendBodyBehindAppBar;
   final bool useSlivers;
   final bool useAppBarAsSliver;
 
@@ -88,6 +90,7 @@ class LoadableScaffold extends StatelessWidget {
           bottomNavigationBar: bottomNavigationBar,
           floatingActionButton: floatingButton,
           backgroundColor: backgroundColor,
+          extendBodyBehindAppBar: extendBodyBehindAppBar,
           persistentFooterAlignment: persistentFooterAlignment,
           persistentFooterDecoration: persistentFooterDecoration,
           persistentFooterButtons: persistentFooterButtons,

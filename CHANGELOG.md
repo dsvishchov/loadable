@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Expose extendBodyBehindAppBar property within LoadableScaffold
+
 ## 0.0.7
 
 - Minor fix to the & operator logic
