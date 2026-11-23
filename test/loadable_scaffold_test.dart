@@ -352,4 +352,41 @@ void main() {
     );
   });
 
+  for (final layout in LoadableAppBarLayout.values) {
+    testWidgets('app bar layout $layout is independent of the sliver body', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LoadableScaffold(
+            bodyLayout: .slivers,
+            appBarLayout: layout,
+            appBarBuilder: (_) => (_) => layout == .fixed
+              ? AppBar(
+                  title: const Text('Page title'),
+                )
+              : const SliverAppBar(
+                  title: Text('Page title'),
+                ),
+            builder: (_) => (_) => SliverList.builder(
+              itemCount: 50,
+              itemBuilder: (_, index) => SizedBox(
+                height: 80,
+                child: Text('Item $index'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Page title').hitTestable(), findsOneWidget);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Page title').hitTestable(),
+        layout == .fixed ? findsOneWidget : findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
 }

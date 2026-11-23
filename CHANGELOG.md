@@ -1,7 +1,8 @@
 ## 0.1.1
 
 - BREAKING: migrate Material and Cupertino widgets to `material_ui` and `cupertino_ui`; consuming apps must migrate together.
-- Add fixed, scrollable, and sliver body layouts. Scrollable bodies fill the viewport and scroll when content exceeds it.
+- Replace `useAppBarAsSliver` with `appBarLayout: .fixed` / `.sliver`, independently of the body layout.
+- Replace `useSlivers` with fixed, scrollable, and sliver body layouts. Scrollable bodies fill the viewport and scroll when content exceeds it.
 - Add explicit Cupertino, Material, and adaptive refresh styles, retaining the legacy indicator setting and existing scroll-start gating.
 - Add safe-area handling, keyboard dismissal, back-navigation control, and an optional scroll controller with ownership-aware disposal.
 - Preserve the existing loading and error presentation and resolve scaffold builders together before composing the page.

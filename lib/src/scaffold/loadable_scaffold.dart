@@ -13,6 +13,11 @@ enum LoadableBodyLayout {
   slivers,
 }
 
+enum LoadableAppBarLayout {
+  fixed,
+  sliver,
+}
+
 enum RefreshIndicatorStyle {
   cupertino,
   material,
@@ -39,6 +44,7 @@ class LoadableScaffold extends StatelessWidget {
     this.refreshIndicatorStyle,
     this.onRefresh,
     this.bodyLayout = .fixed,
+    this.appBarLayout = .fixed,
     this.extendBodyBehindAppBar = false,
     this.padding = .zero,
     this.backgroundColor,
@@ -46,9 +52,6 @@ class LoadableScaffold extends StatelessWidget {
     this.canPop = true,
     this.keyboardDismissBehavior = .manual,
     this.scrollController,
-    @Deprecated('Use bodyLayout: LoadableBodyLayout.slivers instead.')
-    this.useSlivers = false,
-    this.useAppBarAsSliver = false,
   });
 
   /// Legacy fallback: false forces Cupertino on every platform.
@@ -71,6 +74,7 @@ class LoadableScaffold extends StatelessWidget {
   final LoadableRefreshCallback? onRefresh;
 
   final LoadableBodyLayout bodyLayout;
+  final LoadableAppBarLayout appBarLayout;
   final bool extendBodyBehindAppBar;
   final EdgeInsets padding;
   final Color? backgroundColor;
@@ -78,8 +82,6 @@ class LoadableScaffold extends StatelessWidget {
   final bool canPop;
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
   final ScrollController? scrollController;
-  final bool useSlivers;
-  final bool useAppBarAsSliver;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +116,9 @@ class LoadableScaffold extends StatelessWidget {
           canPop: canPop,
           child: Scaffold(
             body: safeBody,
-            appBar: useAppBarAsSliver ? null : appBar as PreferredSizeWidget?,
+            appBar: appBarLayout == .sliver
+              ? null
+              : appBar as PreferredSizeWidget?,
             bottomNavigationBar: bottomNavigationBar,
             floatingActionButton: floatingButton,
             backgroundColor: backgroundColor,
@@ -128,8 +132,6 @@ class LoadableScaffold extends StatelessWidget {
     );
   }
 
-  LoadableBodyLayout get _bodyLayout => useSlivers ? .slivers : bodyLayout;
-
   Widget _page(
     LoadableStatus status,
     Widget? child,
@@ -141,7 +143,7 @@ class LoadableScaffold extends StatelessWidget {
       _ => null,
     };
 
-    final loadedSlivers = status.isLoaded && _bodyLayout == .slivers;
+    final loadedSlivers = status.isLoaded && bodyLayout == .slivers;
 
     if (status.isLoaded) {
       child = loadedSlivers
@@ -159,7 +161,7 @@ class LoadableScaffold extends StatelessWidget {
     final useCupertinoIndicator = _usesCupertinoRefresh;
 
     final canScroll = status.isLoaded &&
-      (_bodyLayout != .fixed || refreshable);
+      (bodyLayout != .fixed || refreshable);
 
     final physics = canScroll
       ? useCupertinoIndicator
@@ -180,11 +182,11 @@ class LoadableScaffold extends StatelessWidget {
       controller: scrollController,
       keyboardDismissBehavior: keyboardDismissBehavior,
       physics: physics,
-      appBar: useAppBarAsSliver ? appBar : null,
+      appBar: appBarLayout == .sliver ? appBar : null,
       slivers: [
         if (!loadedSlivers) ...[
           SliverFillRemaining(
-            hasScrollBody: !status.isLoaded || _bodyLayout != .scrollable,
+            hasScrollBody: !status.isLoaded || bodyLayout != .scrollable,
             child: child,
           ),
         ] else if (child != null) ...[
