@@ -1,5 +1,5 @@
 import 'package:activity_bloc/activity_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// [Loadable] provides a convenient way to handle multiple widget
 /// statuses based on status of an asynchronous operation.

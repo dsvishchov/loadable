@@ -1,28 +1,30 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart' show
+import 'package:cupertino_ui/cupertino_ui.dart' show
   CupertinoActivityIndicator, CupertinoSliverRefreshControl;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-import '../loadable.dart';
+import '/src/loadable.dart';
 
-/// [LoadableScaffold] provides a convenient way to handle multiple statuses
-/// and build scaffold body as well as other essential elements like `appBar`,
-/// `bottomNavigationBar` or `floatingButton` based on [LoadableStatus].
-///
-/// Optional `onRefresh` callback, if provided, enables pull to refresh
-/// functionality and will be called upon action taken by the user.
-///
-/// Widget returned by `builder` might be any descendant of [Widget] unless
-/// `useSlivers` option specified. In this case for [LoadableStats.loaded]
-/// a sliver should be returned instead.
-///
-/// If slivers are used then scrolling functionality is available
-/// out of the box, if not, but scrolling functionality is still required,
-/// then any other scrollable widget must be used,  e.g. [ListView],
-/// however in this case pull to refresh functionality must be handled manually.
+enum LoadableBodyLayout {
+  fixed,
+  scrollable,
+  slivers,
+}
 
+enum RefreshIndicatorStyle {
+  cupertino,
+  material,
+  adaptive,
+}
+
+/// Builds page chrome and content from a [LoadableStatus].
+///
+/// [LoadableBodyLayout.scrollable] accepts ordinary widgets, fills the available
+/// height, and scrolls when content is taller. Use [LoadableBodyLayout.slivers]
+/// for lazy lists or other sliver compositions. Do not nest another scroll view
+/// inside a scrollable body.
 class LoadableScaffold extends StatelessWidget {
   const LoadableScaffold({
     super.key,
@@ -31,46 +33,61 @@ class LoadableScaffold extends StatelessWidget {
     this.appBarBuilder,
     this.bottomNavigationBarBuilder,
     this.floatingButtonBuilder,
+    this.persistentFooterButtonsBuilder,
     this.persistentFooterAlignment = .centerEnd,
     this.persistentFooterDecoration,
-    this.persistentFooterButtonsBuilder,
+    this.refreshIndicatorStyle,
     this.onRefresh,
+    this.bodyLayout = .fixed,
+    this.extendBodyBehindAppBar = false,
     this.padding = .zero,
     this.backgroundColor,
-    this.extendBodyBehindAppBar = false,
+    this.safeArea = true,
+    this.canPop = true,
+    this.keyboardDismissBehavior = .manual,
+    this.scrollController,
+    @Deprecated('Use bodyLayout: LoadableBodyLayout.slivers instead.')
     this.useSlivers = false,
     this.useAppBarAsSliver = false,
   });
 
+  /// Legacy fallback: false forces Cupertino on every platform.
+  /// An explicit [refreshIndicatorStyle] takes precedence.
   static bool useAdaptiveIndicator = true;
   static Widget defaultErrorWidget = const _DefaultError();
   static Widget defaultLoadingWidget = const _DefaultLoading();
 
-  final LoadableWidgetBuilder? builder;
   final LoadableStatusBuilder? statusBuilder;
-  final LoadableRefreshCallback? onRefresh;
-
+  final LoadableWidgetBuilder? builder;
   final LoadableWidgetBuilder? appBarBuilder;
   final LoadableWidgetBuilder? bottomNavigationBarBuilder;
   final LoadableWidgetBuilder? floatingButtonBuilder;
+
+  final LoadableWidgetListBuilder? persistentFooterButtonsBuilder;
   final AlignmentDirectional persistentFooterAlignment;
   final BoxDecoration? persistentFooterDecoration;
-  final LoadableWidgetListBuilder? persistentFooterButtonsBuilder;
 
+  final RefreshIndicatorStyle? refreshIndicatorStyle;
+  final LoadableRefreshCallback? onRefresh;
+
+  final LoadableBodyLayout bodyLayout;
+  final bool extendBodyBehindAppBar;
   final EdgeInsets padding;
   final Color? backgroundColor;
-  final bool extendBodyBehindAppBar;
+  final bool safeArea;
+  final bool canPop;
+  final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+  final ScrollController? scrollController;
   final bool useSlivers;
   final bool useAppBarAsSliver;
 
   @override
   Widget build(BuildContext context) {
     return Loadable(
-      key: key,
       statusBuilder: statusBuilder,
       builder: (status) => (context) {
         final appBar = appBarBuilder
-          ?.build(context, status) as PreferredSizeWidget?;
+          ?.build(context, status);
 
         final bottomNavigationBar = bottomNavigationBarBuilder
           ?.build(context, status);
@@ -84,26 +101,39 @@ class LoadableScaffold extends StatelessWidget {
         final page = builder
           ?.build(context, status);
 
-        return Scaffold(
-          body: _page(context, status, page, appBar),
-          appBar: !useAppBarAsSliver ? appBar : null,
-          bottomNavigationBar: bottomNavigationBar,
-          floatingActionButton: floatingButton,
-          backgroundColor: backgroundColor,
-          extendBodyBehindAppBar: extendBodyBehindAppBar,
-          persistentFooterAlignment: persistentFooterAlignment,
-          persistentFooterDecoration: persistentFooterDecoration,
-          persistentFooterButtons: persistentFooterButtons,
+        final body = _page(status, page, appBar);
+
+        final safeBody = safeArea
+          ? SafeArea(
+              top: appBar == null,
+              child: body,
+            )
+          : body;
+
+        return PopScope(
+          canPop: canPop,
+          child: Scaffold(
+            body: safeBody,
+            appBar: useAppBarAsSliver ? null : appBar as PreferredSizeWidget?,
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: floatingButton,
+            backgroundColor: backgroundColor,
+            extendBodyBehindAppBar: extendBodyBehindAppBar,
+            persistentFooterAlignment: persistentFooterAlignment,
+            persistentFooterDecoration: persistentFooterDecoration,
+            persistentFooterButtons: persistentFooterButtons,
+          ),
         );
       },
     );
   }
 
-  Widget? _page(
-    BuildContext context,
+  LoadableBodyLayout get _bodyLayout => useSlivers ? .slivers : bodyLayout;
+
+  Widget _page(
     LoadableStatus status,
     Widget? child,
-    PreferredSizeWidget? appBar,
+    Widget? appBar,
   ) {
     child ??= switch (status) {
       .error => defaultErrorWidget,
@@ -111,14 +141,12 @@ class LoadableScaffold extends StatelessWidget {
       _ => null,
     };
 
-    if (status.isLoaded) {
-      final safeBottom = EdgeInsets.only(
-        bottom: MediaQuery.viewPaddingOf(context).bottom
-      );
+    final loadedSlivers = status.isLoaded && _bodyLayout == .slivers;
 
-      child = useSlivers
+    if (status.isLoaded) {
+      child = loadedSlivers
         ? SliverPadding(
-            padding: padding + safeBottom,
+            padding: padding,
             sliver: child,
           )
         : Padding(
@@ -127,29 +155,54 @@ class LoadableScaffold extends StatelessWidget {
           );
     }
 
-    final refreshable = !status.isLoading && (onRefresh != null);
-    final useCupertinoIndicator = (!kIsWeb && (defaultTargetPlatform == .iOS)) || !useAdaptiveIndicator;
+    final refreshable = !status.isLoading && onRefresh != null;
+    final useCupertinoIndicator = _usesCupertinoRefresh;
 
-    final view = _RefreshableCustomScrollView(
+    final canScroll = status.isLoaded &&
+      (_bodyLayout != .fixed || refreshable);
+
+    final physics = canScroll
+      ? useCupertinoIndicator
+        ? BouncingScrollPhysics(
+            parent: refreshable || loadedSlivers
+              ? const AlwaysScrollableScrollPhysics()
+              : null,
+          )
+        : refreshable
+          ? const AlwaysScrollableScrollPhysics()
+          : null
+      : const NeverScrollableScrollPhysics();
+
+    return _RefreshableCustomScrollView(
       refreshable: refreshable,
       useCupertinoIndicator: useCupertinoIndicator,
-      onRefresh: () => onRefresh!(),
-      physics: BouncingScrollPhysics(
-        parent: status.isLoaded && (useSlivers || (refreshable && useCupertinoIndicator))
-          ? const AlwaysScrollableScrollPhysics()
-          : const NeverScrollableScrollPhysics(),
-      ),
+      onRefresh: onRefresh,
+      controller: scrollController,
+      keyboardDismissBehavior: keyboardDismissBehavior,
+      physics: physics,
       appBar: useAppBarAsSliver ? appBar : null,
       slivers: [
-        if (!status.isLoaded || !useSlivers) ...[
-          SliverFillRemaining(child: child),
+        if (!loadedSlivers) ...[
+          SliverFillRemaining(
+            hasScrollBody: !status.isLoaded || _bodyLayout != .scrollable,
+            child: child,
+          ),
         ] else if (child != null) ...[
           child,
         ],
       ],
     );
+  }
 
-    return view;
+  bool get _usesCupertinoRefresh {
+    final style = refreshIndicatorStyle ??
+      (useAdaptiveIndicator ? .adaptive : .cupertino);
+
+    return switch (style) {
+      .cupertino => true,
+      .material => false,
+      .adaptive => !kIsWeb && defaultTargetPlatform == .iOS,
+    };
   }
 }
 
@@ -159,7 +212,9 @@ class _DefaultLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: .only(top: 16.0),
+      padding: .only(
+        top: 16.0,
+      ),
       child: Align(
         alignment: .topCenter,
         child: CupertinoActivityIndicator(
@@ -179,20 +234,20 @@ class _DefaultError extends StatelessWidget {
     return FractionallySizedBox(
       alignment: .center,
       widthFactor: 0.85,
-      child:  Column(
+      child: Column(
         mainAxisAlignment: .center,
         spacing: 12.0,
         children: [
           Text(
             'Something went wrong',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: .bold,
             ),
           ),
           const Text(
             'We have been notified and will do our best to resolve the problem as soon as possible',
             textAlign: TextAlign.center,
-          )
+          ),
         ],
       ),
     );
@@ -202,11 +257,13 @@ class _DefaultError extends StatelessWidget {
 class _RefreshableCustomScrollView extends StatefulWidget {
   const _RefreshableCustomScrollView({
     this.appBar,
-    this.slivers = const <Widget>[],
+    this.slivers = const [],
     this.physics,
     required this.refreshable,
     required this.useCupertinoIndicator,
     this.onRefresh,
+    this.controller,
+    this.keyboardDismissBehavior = .manual,
   });
 
   final bool refreshable;
@@ -215,21 +272,24 @@ class _RefreshableCustomScrollView extends StatefulWidget {
   final List<Widget> slivers;
   final ScrollPhysics? physics;
   final RefreshCallback? onRefresh;
+  final ScrollController? controller;
+  final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
 
   @override
   State<_RefreshableCustomScrollView> createState() => _RefreshableCustomScrollViewState();
 }
 
 class _RefreshableCustomScrollViewState extends State<_RefreshableCustomScrollView> {
-  final _scrollController = ScrollController();
+  late ScrollController _scrollController;
   var _isScrollAtTop = true;
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
+    final view = NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
       child: CustomScrollView(
         controller: _scrollController,
+        keyboardDismissBehavior: widget.keyboardDismissBehavior,
         physics: widget.physics,
         slivers: [
           if (widget.appBar != null) ...[
@@ -244,6 +304,42 @@ class _RefreshableCustomScrollViewState extends State<_RefreshableCustomScrollVi
         ],
       ),
     );
+
+    return widget.refreshable && !widget.useCupertinoIndicator
+      ? RefreshIndicator(
+          onRefresh: widget.onRefresh!,
+          child: view,
+        )
+      : view;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = widget.controller ?? .new();
+  }
+
+  @override
+  void didUpdateWidget(_RefreshableCustomScrollView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller == null) {
+        _scrollController.dispose();
+      }
+
+      _scrollController = widget.controller ?? .new();
+      _isScrollAtTop = !_scrollController.hasClients || _scrollController.offset <= 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _scrollController.dispose();
+    }
+
+    super.dispose();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -251,17 +347,22 @@ class _RefreshableCustomScrollViewState extends State<_RefreshableCustomScrollVi
       if (_scrollController.offset <= 0 && !_isScrollAtTop) {
         scheduleMicrotask(() {
           if (mounted) {
-            setState(() => _isScrollAtTop = true);
+            setState(() {
+              _isScrollAtTop = true;
+            });
           }
         });
       } else if (_scrollController.offset > 0 && _isScrollAtTop) {
         scheduleMicrotask(() {
           if (mounted) {
-            setState(() => _isScrollAtTop = false);
+            setState(() {
+              _isScrollAtTop = false;
+            });
           }
         });
       }
     }
+
     return false;
   }
 }

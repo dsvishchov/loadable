@@ -7,3 +7,5 @@
 devtools_options.yaml
 pubspec.lock
 pubspec_overrides.yaml
+# Flutter test and build outputs.
+/build/
